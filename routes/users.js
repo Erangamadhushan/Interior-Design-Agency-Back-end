@@ -84,4 +84,37 @@ router.post('/login', async (req, res) => {
     }
 });
 
+// Update user endpoint
+router.put('/:id', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        const updatedData = {};
+
+        if (email) updatedData.email = email;
+        if (password) {
+            const hashedPassword = await bcrypt.getSalt(10).then(salt => {
+                return bcrypt.hash(password, salt);
+            });
+            updatedData.password = hashedPassword;
+        }
+
+        const user = await User.findByIdAndUpdate(req.params.id, updatedData, { new: true }).select('-password');
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        res.json({ message: 'User updated successfully', user });
+    } catch (err) {
+        res.status(500).json({ message: 'Server Error', error: err.message });
+    }
+});
+
+// Delete user endpoint
+router.delete('/:id', async (req, res) => {
+    try {
+        const user = await User.findByIdAndDelete(req.params.id);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        res.json({ message: 'User deleted successfully' });
+    } catch (err) {
+        res.status(500).json({ message: 'Server Error', error: err.message });
+    }
+});
+
 module.exports = router;
