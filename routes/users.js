@@ -10,19 +10,37 @@ const User = require('../models/User');
 
 router.get('/', async (req, res) => {
     try {
-        const users = await User.find().select('-password'); // Exclude passwords
-        res.json(users);
+        //Pagination
+		const page = parseInt(req.query.page) || 1;
+		const limit = parsetInt(req.query.limit) || 10;
+		const skip = (page - 1) * limit;
+
+		//Only return minimal necessary fields
+		const users = await User.find()
+		.select("name email createdAt") // Only safe fields
+		.limit(limit)
+		.skip(skip)
+		.sort({createdAt: -1});
+
+		const total = await User.countDocuments();
+
+		res.json({
+			users,
+			currentPage: page,
+			totalPages: Math.ceil(total/limit),
+			totalUsers: total
+		});
     } catch (err) {
         res.status(500).json({ message: 'Server Error', error: err.message });
     }
 });
 router.get('/:id', async (req, res) => {
     try {
-        const user = await User.findById(req.params.id).select('-password');
-        if (!user) return res.status(404).json({ message: 'User not found' });
-        res.json(user);
+		const user = await User.findById(req.params.id).select("name email createdAt"); // Only safe fields
+		if (!user) return res.status(404).json({ message: 'User not found' });
+		res.json(user);
     } catch (err) {
-        res.status(500).json({ message: 'Server Error', error: err.message });
+        res.status(500).json({ message: 'Server Error', error: err.message });  
     }
 });
 
