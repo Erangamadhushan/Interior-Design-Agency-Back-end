@@ -23,5 +23,5 @@ app.use('/api/auth/projects', require('./routes/projects'));
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  console.log('hosted at http://localhost:' + PORT);
+  console.log(`hosted on http://localhost:${PORT}`);
 });
